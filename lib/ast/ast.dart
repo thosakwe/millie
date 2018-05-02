@@ -26,7 +26,6 @@ enum TokenType {
   rCurly,
   lParen,
   rParen,
-  semi,
 
   // Operators
   bitwiseAnd,
@@ -40,4 +39,10 @@ enum TokenType {
   // Keywords
   externFn,
   fn,
+
+  // Data
+  string,
+  number,
+  hex,
+  id
 }
