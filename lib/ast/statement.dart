@@ -32,4 +32,6 @@ class IfStatement extends Statement {
   final Statement body;
   final Statement else_;
   final FileSpan span;
+
+  IfStatement(this.condition, this.body, this.else_, this.span);
 }

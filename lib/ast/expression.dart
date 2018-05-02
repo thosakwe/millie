@@ -88,6 +88,18 @@ class Number extends Expression {
   get constantValue => num.parse(token.span.text);
 }
 
+class String_ extends Expression {
+  final Token token;
+
+  String_(this.token) : super(token.span);
+
+  @override
+  bool get isConstant => true;
+
+  @override
+  get constantValue => token.span.text.substring(1, token.span.length - 1);
+}
+
 class Hex extends Expression {
   final Token token;
 
