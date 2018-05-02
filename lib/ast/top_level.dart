@@ -7,19 +7,13 @@ class CompilationUnit extends AstNode {
   CompilationUnit(this.functions, this.span);
 }
 
-class Block extends AstNode {
-  final FileSpan span;
-
-  Block(this.span);
-}
-
 abstract class Function_ extends AstNode {
   FunctionSignature get signature;
 }
 
 class ImplementedFunction extends Function_ {
   final FunctionSignature signature;
-  final Block body;
+  final Statement body;
 
   ImplementedFunction(this.signature, this.body);
 
