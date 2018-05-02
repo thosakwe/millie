@@ -1,7 +1,35 @@
 part of millie.text;
 
-final Map<Pattern, TokenType> _patterns = {};
 final RegExp _whitespace = new RegExp(r'[ \n\r\t]+');
+
+final Map<Pattern, TokenType> _patterns = {
+  // Symbols
+  ':': TokenType.colon,
+  ',': TokenType.comma,
+  '{': TokenType.lCurly,
+  '}': TokenType.rCurly,
+  '(': TokenType.lParen,
+  ')': TokenType.rParen,
+
+  // Operators
+  '&': TokenType.bitwiseAnd,
+  '=': TokenType.equals,
+  '*': TokenType.times,
+  '/': TokenType.div,
+  '%': TokenType.mod,
+  '+': TokenType.plus,
+  '-': TokenType.minus,
+
+  // Keywords
+  'extern-fn': TokenType.externFn,
+  'fn': TokenType.fn,
+
+  // Data
+  new RegExp(r'"(([^"])|(\\"))*"'): TokenType.string,
+  new RegExp(r'-?[0-9]+(\.[0-9]+)?'): TokenType.number,
+  new RegExp(r'0[Xx]([A-Fa-f908]+)'): TokenType.hex,
+  new RegExp(r'[A-Za-z_][A-Za-z0-9_]*'): TokenType.id
+};
 
 List<Token> scan(String text, {sourceUrl}) {
   var scanner = new SpanScanner(text, sourceUrl: sourceUrl);
