@@ -18,6 +18,14 @@ class Token {
   Token(this.type, this.span, this.match);
 }
 
+const List<TokenType> binaryOperators = const [
+  TokenType.times,
+  TokenType.div,
+  TokenType.mod,
+  TokenType.plus,
+  TokenType.minus
+];
+
 enum TokenType {
   // Symbols
   colon,
@@ -37,8 +45,11 @@ enum TokenType {
   minus,
 
   // Keywords
+  else_,
   externFn,
+  if_,
   fn,
+  return_,
 
   // Data
   string,

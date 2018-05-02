@@ -21,8 +21,11 @@ final Map<Pattern, TokenType> _patterns = {
   '-': TokenType.minus,
 
   // Keywords
+  'else': TokenType.else_,
   'extern-fn': TokenType.externFn,
+  'if': TokenType.if_,
   'fn': TokenType.fn,
+  'return': TokenType.return_,
 
   // Data
   new RegExp(r'"(([^"])|(\\"))*"'): TokenType.string,
