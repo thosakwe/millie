@@ -1,6 +1,7 @@
 library millie.ast;
 
 import 'package:source_span/source_span.dart';
+part 'expression.dart';
 
 abstract class AstNode {
   FileSpan get span;
@@ -17,6 +18,7 @@ class Token {
 enum TokenType {
   // Symbols
   colon,
+  comma,
   lCurly,
   rCurly,
   lParen,
