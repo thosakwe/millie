@@ -2,6 +2,8 @@ library millie.ast;
 
 import 'package:source_span/source_span.dart';
 part 'expression.dart';
+part 'statement.dart';
+part 'type.dart';
 
 abstract class AstNode {
   FileSpan get span;
