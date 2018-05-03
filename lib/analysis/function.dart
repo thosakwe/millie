@@ -1,13 +1,16 @@
 part of millie.analysis;
 
 class Function_ {
+  final String name;
   final List<Statement> body = [];
   final ast.Function_ declaration;
   final List<Parameter> parameters;
   final Type returnType;
+  final SymbolTable<Value> scope;
   bool isExtern = false;
 
-  Function_(this.declaration, this.parameters, this.returnType);
+  Function_(this.name, this.declaration, this.parameters, this.returnType,
+      this.scope);
 }
 
 class Parameter {
