@@ -7,7 +7,8 @@ class Analyzer {
 
   Program analyze(ast.CompilationUnit ctx) {
     var rootScope = new SymbolTable<Value>();
-    var state = new AnalyzerState(rootScope, {}, {}, null);
+    var state = new AnalyzerState(
+        rootScope, {}, new Map.from(Type.predefinedTypes), null);
 
     for (var function in ctx.functions)
       state = analyzeFunction(function, state);
@@ -34,13 +35,12 @@ class Analyzer {
     if (function is ast.ExternFunction) {
       state.functions[function] = fn;
     } else if (function is ast.ImplementedFunction) {
-      state = compileStatement(function.body, state);
-
       var extern = state.functions.values.firstWhere(
           (f) => f.name == fn.name && f.declaration is ast.ExternFunction,
           orElse: () => null);
       if (extern != null) {
         extern
+          ..scope = fn.scope
           ..isExtern = false
           ..body = fn.body;
         fn = extern;
@@ -61,15 +61,11 @@ class Analyzer {
     } else if (type is ast.NamedType) {
       var resolved = state.types[type.name.name];
       if (resolved == null)
-        throw "Undefined name '${type.name.name}'.\n${type.span.highlight(color: true)}";
+        throw "Undefined type '${type.name.name}'.\n${type.span.highlight(color: true)}";
       return resolved;
     }
 
     throw new UnsupportedError(type.runtimeType.toString());
-  }
-
-  AnalyzerState compileStatement(ast.Statement body, AnalyzerState state) {
-    throw new UnimplementedError(body.runtimeType.toString());
   }
 }
 

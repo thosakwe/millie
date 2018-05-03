@@ -5,7 +5,7 @@ class Function_ {
   final ast.Function_ declaration;
   final List<Parameter> parameters;
   final Type returnType;
-  final SymbolTable<Value> scope;
+  SymbolTable<Value> scope;
   Statement body;
   bool isExtern = false;
 
