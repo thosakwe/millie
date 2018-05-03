@@ -49,6 +49,7 @@ enum TokenType {
   externFn,
   if_,
   fn,
+  let,
   return_,
 
   // Data

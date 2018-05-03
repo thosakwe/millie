@@ -25,6 +25,7 @@ final Map<Pattern, TokenType> _patterns = {
   'extern-fn': TokenType.externFn,
   'if': TokenType.if_,
   'fn': TokenType.fn,
+  'let': TokenType.let,
   'return': TokenType.return_,
 
   // Data

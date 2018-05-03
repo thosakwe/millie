@@ -6,10 +6,10 @@ abstract class Type extends AstNode {
   Type(this.span);
 }
 
-class NamedSpan extends Type {
+class NamedType extends Type {
   final Identifier name;
 
-  NamedSpan(this.name) : super(name.span);
+  NamedType(this.name) : super(name.span);
 }
 
 class PointerType extends Type {

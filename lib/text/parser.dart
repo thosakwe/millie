@@ -23,8 +23,143 @@ class Parser {
 
   Token peek() => done ? null : tokens[_index + 1];
 
+  CompilationUnit parseCompilationUnit() {
+    var functions = <Function_>[];
+    var function = parseFunction();
+    FileSpan span;
+
+    while (function != null) {
+      span ??= function.span;
+      span = span.expand(function.span);
+      functions.add(function);
+    }
+
+    return new CompilationUnit(functions, span);
+  }
+
+  Function_ parseFunction() =>
+      parseExternFunction() ?? parseImplementedFunction();
+
+  ExternFunction parseExternFunction() {
+    if (!next(TokenType.externFn)) return null;
+    var externFn = _current;
+    var signature = parseFunctionSignature();
+    if (signature == null) throw_('Missing function signature.', externFn.span);
+    return new ExternFunction(signature, externFn.span.expand(signature.span));
+  }
+
+  ImplementedFunction parseImplementedFunction() {
+    if (!next(TokenType.externFn)) return null;
+    var fn = _current;
+    var signature = parseFunctionSignature();
+    if (signature == null) throw_('Missing function signature.', fn.span);
+    var body = parseStatement();
+    if (body == null) throw_('Missing statement.', signature.span);
+    return new ImplementedFunction(
+        signature, body, fn.span.expand(signature.span).expand(body.span));
+  }
+
+  FunctionSignature parseFunctionSignature() {
+    if (!next(TokenType.id)) return null;
+    var name = new Identifier(_current);
+    if (!next(TokenType.lParen)) throw_("Missing '('.", name.span);
+    var lParen = _current,
+        lastSpan = lParen.span,
+        parameters = <Parameter>[],
+        parameter = parseParameter();
+    var span = name.span.expand(lParen.span);
+
+    while (parameter != null) {
+      span = span.expand(lastSpan = parameter.span);
+      parameters.add(parameter);
+      if (!next(TokenType.comma)) break;
+      span = span.expand(lastSpan = _current.span);
+      parameter = parseParameter();
+    }
+
+    if (!next(TokenType.rParen)) throw_("Missing ')'.", lastSpan);
+    span = span.expand(lastSpan = _current.span);
+    if (!next(TokenType.colon)) throw_("Missing ':'.", lastSpan);
+    span = span.expand(lastSpan = _current.span);
+    var returnType = parseType();
+    if (returnType == null) throw_('Missing return type.', lastSpan);
+    return new FunctionSignature(
+        name, parameters, returnType, span.expand(returnType.span));
+  }
+
+  Parameter parseParameter() {
+    if (!next(TokenType.id)) return null;
+    var name = new Identifier(_current);
+    if (!next(TokenType.colon)) throw_("Missing ':'.", name.span);
+    var colon = _current;
+    var type = parseType();
+    if (type == null) throw_('Missing type.', colon.span);
+    return new Parameter(name, type);
+  }
+
+  ast.Type parseType() {
+    if (!next(TokenType.id)) return null;
+    ast.Type type = new NamedType(new Identifier(_current));
+
+    while (next(TokenType.times))
+      type = new PointerType(type, type.span.expand(_current.span));
+
+    return type;
+  }
+
   Statement parseStatement() {
-    return parseExpressionStatement() ?? parseReturnStatement();
+    return parseExpressionStatement() ??
+        parseReturnStatement() ??
+        parseBlock() ??
+        parseIfStatement() ??
+        parseVariableDeclaration();
+  }
+
+  VariableDeclaration parseVariableDeclaration() {
+    if (!next(TokenType.let)) return null;
+    var let = _current;
+    if (!next(TokenType.id)) throw_('Missing identifier.', let.span);
+    var name = new Identifier(_current);
+    if (!next(TokenType.equals)) throw_("Missing '='.", name.span);
+    var equals = _current;
+    var expression = parseExpression();
+    if (expression == null) throw_('Missing expression.', equals.span);
+    return new VariableDeclaration(name, expression);
+  }
+
+  IfStatement parseIfStatement() {
+    if (!next(TokenType.if_)) return null;
+    var if_ = _current;
+    var condition = parseExpression();
+    if (condition == null) throw_('Missing expression', if_.span);
+    var body = parseStatement();
+    if (body == null) throw_('Missing statement', condition.span);
+    var span = if_.span.expand(condition.span).expand(body.span);
+    Statement else_;
+
+    if (next(TokenType.else_)) {
+      var elseToken = _current;
+      else_ = parseStatement();
+      if (else_ == null) throw_('Missing statement', elseToken.span);
+    }
+
+    return new IfStatement(condition, body, else_, span);
+  }
+
+  Block parseBlock() {
+    if (!next(TokenType.lParen)) return null;
+    var lParen = _current, span = lParen.span;
+    var statements = <Statement>[], statement = parseStatement();
+
+    while (!done) {
+      if (statement == null) break;
+      span = span.expand(statement.span);
+      statements.add(statement);
+    }
+
+    if (!next(TokenType.rParen)) throw_("Missing ')'", span);
+
+    return new Block(statements, span.expand(_current.span));
   }
 
   ExpressionStatement parseExpressionStatement() {
@@ -53,6 +188,8 @@ class Parser {
       if (lastWasExpression) {
         if (next(TokenType.lParen)) {
           // TODO: Call
+          throw new UnimplementedError(
+              'Call expressions\n${_current.span.highlight()}');
         }
 
         var op = peek();
@@ -88,6 +225,8 @@ class Parser {
       out = new Binary(
           left, out, operators.removeFirst(), left.span.expand(out.span));
     }
+
+    return out;
   }
 
   Expression parsePrefixExpression() {

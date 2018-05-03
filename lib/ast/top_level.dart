@@ -14,10 +14,9 @@ abstract class Function_ extends AstNode {
 class ImplementedFunction extends Function_ {
   final FunctionSignature signature;
   final Statement body;
+  final FileSpan span;
 
-  ImplementedFunction(this.signature, this.body);
-
-  FileSpan get span => signature.span.expand(body.span);
+  ImplementedFunction(this.signature, this.body, this.span);
 }
 
 class ExternFunction extends Function_ {
