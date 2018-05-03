@@ -1,6 +1,7 @@
 name: millie
 dependencies:
   args: ^1.0.0
+  code_buffer: ^1.0.0
   file: ^2.0.0
   linear_memory: ^1.0.0
   path: ^1.4.0
