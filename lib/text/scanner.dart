@@ -49,7 +49,7 @@ List<Token> scan(String text, {sourceUrl}) {
     });
 
     if (matches.isEmpty)
-      throw 'Unexpected text or EOF.\n${scanner.emptySpan.highlight()}';
+      throw 'Syntax error: Unexpected text or EOF.\n${scanner.emptySpan.highlight(color: true)}';
 
     matches.sort((a, b) => b.span.length.compareTo(a.span.length));
     tokens.add(matches[0]);

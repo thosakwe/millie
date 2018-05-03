@@ -1,0 +1,6 @@
+extern-fn puts(msg:i8*):void
+
+fn main():i32 {
+    puts("Hello, world!")
+    return 0
+}

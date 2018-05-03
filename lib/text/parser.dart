@@ -10,7 +10,7 @@ class Parser {
   bool get done => _index >= tokens.length - 1;
 
   void throw_(String msg, FileSpan span) {
-    throw '$msg\n${span.highlight()}';
+    throw 'Syntax error: $msg\n${span.highlight(color: true)}';
   }
 
   bool next(TokenType type) {
@@ -32,6 +32,12 @@ class Parser {
       span ??= function.span;
       span = span.expand(function.span);
       functions.add(function);
+      function = parseFunction();
+    }
+
+    if (!done) {
+      throw_('Malformed document. Unexpected or erroneous text starts here.',
+          tokens[_index].span);
     }
 
     return new CompilationUnit(functions, span);
@@ -49,7 +55,7 @@ class Parser {
   }
 
   ImplementedFunction parseImplementedFunction() {
-    if (!next(TokenType.externFn)) return null;
+    if (!next(TokenType.fn)) return null;
     var fn = _current;
     var signature = parseFunctionSignature();
     if (signature == null) throw_('Missing function signature.', fn.span);
@@ -147,18 +153,18 @@ class Parser {
   }
 
   Block parseBlock() {
-    if (!next(TokenType.lParen)) return null;
-    var lParen = _current, span = lParen.span;
+    if (!next(TokenType.lCurly)) return null;
+    var lCurly = _current, span = lCurly.span;
     var statements = <Statement>[], statement = parseStatement();
 
     while (!done) {
       if (statement == null) break;
       span = span.expand(statement.span);
       statements.add(statement);
+      statement = parseStatement();
     }
 
-    if (!next(TokenType.rParen)) throw_("Missing ')'", span);
-
+    if (!next(TokenType.rCurly)) throw_("Missing '}'", span);
     return new Block(statements, span.expand(_current.span));
   }
 
@@ -187,28 +193,39 @@ class Parser {
     while (!done) {
       if (lastWasExpression) {
         if (next(TokenType.lParen)) {
-          // TODO: Call
-          throw new UnimplementedError(
-              'Call expressions\n${_current.span.highlight()}');
+          var target = exprs.removeFirst();
+          var span = _current.span, lastSpan = span;
+          var arguments = <Expression>[], argument = parseExpression();
+
+          while (argument != null) {
+            span = span.expand(lastSpan = argument.span);
+            arguments.add(argument);
+            if (!next(TokenType.comma)) break;
+            argument = parseExpression();
+          }
+
+          if (!next(TokenType.rParen)) throw_("Missing ')'.", lastSpan);
+          exprs.addFirst(
+              new Call(target, arguments, span.expand(_current.span)));
+        } else {
+          var op = peek();
+          if (!binaryOperators.contains(op.type)) break;
+          next(op.type);
+          operators.addFirst(op);
+          lastWasExpression = false;
+
+          while (operators.length > 1 &&
+              binaryOperators.indexOf(operators.first.type) <
+                  binaryOperators.indexOf(op.type)) {
+            var left = exprs.removeFirst(),
+                right = exprs.removeFirst(),
+                op = operators.removeFirst();
+            var out = new Binary(left, right, op, left.span.expand(right.span));
+            exprs.addFirst(out);
+          }
+
+          operators.addFirst(op);
         }
-
-        var op = peek();
-        if (!binaryOperators.contains(op.type)) break;
-        next(op.type);
-        operators.addFirst(op);
-        lastWasExpression = false;
-
-        while (operators.length > 1 &&
-            binaryOperators.indexOf(operators.first.type) <
-                binaryOperators.indexOf(op.type)) {
-          var left = exprs.removeFirst(),
-              right = exprs.removeFirst(),
-              op = operators.removeFirst();
-          var out = new Binary(left, right, op, left.span.expand(right.span));
-          exprs.addFirst(out);
-        }
-
-        operators.addFirst(op);
       } else {
         var expr = parsePrefixExpression();
         if (expr == null)

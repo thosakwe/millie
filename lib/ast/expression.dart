@@ -12,6 +12,13 @@ abstract class Expression extends AstNode {
   dynamic get constantValue => throw new UnsupportedError('Not a constant');
 }
 
+class Call extends Expression {
+  final Expression target;
+  final List<Expression> arguments;
+
+  Call(this.target, this.arguments, FileSpan span) : super(span);
+}
+
 class Pointer extends Expression {
   final Expression expression;
 
