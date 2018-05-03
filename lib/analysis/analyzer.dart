@@ -33,7 +33,7 @@ class Analyzer {
     );
 
     if (function is ast.ExternFunction) {
-      state.functions[function] = fn;
+      state.functions[function] = fn..isExtern = true;
     } else if (function is ast.ImplementedFunction) {
       var extern = state.functions.values.firstWhere(
           (f) => f.name == fn.name && f.declaration is ast.ExternFunction,

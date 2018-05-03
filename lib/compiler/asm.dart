@@ -25,6 +25,7 @@ class Section extends Code {
 
   @override
   void generate(CodeBuffer buf) {
+    if (body.isEmpty) return;
     buf
       ..writeln('section .$name')
       ..indent();
@@ -56,7 +57,10 @@ class Label extends Code {
     buf
       ..writeln('$name:')
       ..indent();
-    body.forEach((b) => b.generate(buf));
+    if (body.isEmpty)
+      buf.writeln('ret');
+    else
+      body.forEach((b) => b.generate(buf));
     buf.outdent();
   }
 }
