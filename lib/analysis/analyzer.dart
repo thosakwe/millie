@@ -34,13 +34,15 @@ class Analyzer {
     if (function is ast.ExternFunction) {
       state.functions[function] = fn;
     } else if (function is ast.ImplementedFunction) {
+      state = compileStatement(function.body, state);
+
       var extern = state.functions.values.firstWhere(
           (f) => f.name == fn.name && f.declaration is ast.ExternFunction,
           orElse: () => null);
       if (extern != null) {
         extern
           ..isExtern = false
-          ..body.addAll(fn.body);
+          ..body = fn.body;
         fn = extern;
       } else {
         state.functions[function] = fn;
@@ -64,6 +66,10 @@ class Analyzer {
     }
 
     throw new UnsupportedError(type.runtimeType.toString());
+  }
+
+  AnalyzerState compileStatement(ast.Statement body, AnalyzerState state) {
+    throw new UnimplementedError(body.runtimeType.toString());
   }
 }
 
