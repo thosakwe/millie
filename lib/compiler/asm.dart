@@ -42,7 +42,7 @@ class Data extends Code {
 
   @override
   void generate(CodeBuffer buf) {
-    buf.writeln('$name $type ${initializers.join(',')}');
+    buf.writeln('$name $type ${initializers.join(', ')}');
   }
 }
 
@@ -95,6 +95,6 @@ class Instruction extends Code {
 
   @override
   void generate(CodeBuffer buf) {
-    buf.writeln('$opcode ${operands.join(',')}');
+    buf.writeln('$opcode ${operands.join(', ')}');
   }
 }

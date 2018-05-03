@@ -92,6 +92,8 @@ class Compiler {
           ]));
         state.label.body.add(new Instruction('ret', []));
       }
+
+      return state;
     }
 
     throw new UnsupportedError(ctx.runtimeType.toString());
@@ -116,9 +118,39 @@ class Compiler {
         initializer = ctx.constantValue.toString();
       }
 
-      var value = state.constants.putIfAbsent(
-          ctx.constantValue, () => new Data(name, type.asmType, [initializer]));
+      var value = state.constants.putIfAbsent(ctx.constantValue, () {
+        var constant = new Data(name, type.asmType, [initializer]);
+        state.dataSection.body.add(constant);
+        return constant;
+      });
       return new Tuple2(new DataPointer(value, type, ctx.span), state);
+    }
+
+    if (ctx is ast.Identifier) {
+      var symbol = state.dominanceFrontier.allVariables
+          .firstWhere((v) => v.name == ctx.name, orElse: () => null);
+
+      if (symbol != null) {
+        return new Tuple2(
+            new DataPointer(
+                new Data(symbol.name, symbol.value.type.asmType, []),
+                symbol.value.type,
+                ctx.span),
+            state);
+      }
+
+      var function = state.program.functions
+          .firstWhere((f) => f.name == ctx.name, orElse: () => null);
+
+      if (function == null)
+        throw "The name '${ctx.name}' does not exist in this context.\n${ctx.span.highlight(color: true)}";
+
+      return new Tuple2(
+          new DataPointer(
+              new Data(ctx.name, ml.Type.predefinedTypes['i32'].asmType, []),
+              ml.Type.predefinedTypes['i32'],
+              ctx.span),
+          state);
     }
 
     if (ctx is ast.Call) {
