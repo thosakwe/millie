@@ -64,8 +64,15 @@ class Compiler {
     ]);
 
     if (function.declaration is ast.ImplementedFunction) {
+      var frontier = state.dominanceFrontier;
       state = compileStatement(
-          (function.declaration as ast.ImplementedFunction).body, state);
+        (function.declaration as ast.ImplementedFunction).body,
+        state.copyWith(
+          function: function,
+          scope: function.scope,
+          dominanceFrontier: frontier,
+        ),
+      );
     }
 
     return state;
